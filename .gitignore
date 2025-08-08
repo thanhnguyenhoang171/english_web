@@ -1,0 +1,97 @@
+# =============================
+# Common for Fullstack Project
+# =============================
+
+# Node modules (backend + frontend)
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+build/
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / test output
+coverage/
+.nyc_output/
+backend/coverage/
+frontend/coverage/
+
+# IDE / Editor settings
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Env files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+backend/.env
+frontend/.env
+
+# Temp directories
+.temp/
+.tmp/
+backend/.temp/
+frontend/.temp/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Cache
+.cache/
+backend/.cache/
+frontend/.cache/
+
+# Optional npm / yarn cache
+.npm/
+.yarn/
+
+# Optional TypeScript build cache
+*.tsbuildinfo
+
+# Optional Next.js
+.next/
+out/
+
+# Optional Remix
+.remix/
+
+# Optional Nuxt.js
+.nuxt/

@@ -1,0 +1,10 @@
+.login-container {
+    background-image: url('/login.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    width: 100%;
+    height: 100vh;
+    color: #1e3a8a;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,31 @@
+.register-container {
+    background-image: url('/3485271.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    width: 100%;
+    height: 100vh;
+    color: #1e3a8a;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ant-form {
+    color: #1e3a8a;
+    background: rgba(255, 255, 255, 0.5); /* lớp mờ trong suốt */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px); /* hiệu ứng kính mờ */
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    padding-right: 42px;
+    padding-top: 24px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.ant-form h2 {
+    color: #2d1e5f;
+}
+
+.ant-form-item .ant-form-item-label >label {
+    color:	#3F3CBB;
+}
