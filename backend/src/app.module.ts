@@ -8,6 +8,10 @@ import { Connection } from "mongoose";
 import { UsersModule } from "./users/users.module";
 import { softDeletePlugin } from "soft-delete-plugin-mongoose";
 import { AuthModule } from "./authentication/auth.module";
+import { PostsModule } from './posts/posts.module';
+import { FlashcardsModule } from './flashcards/flashcards.module';
+import { CloudinaryModule } from "./cloudinary/cloudinary.module";
+
 
 @Module({
   imports: [
@@ -34,6 +38,9 @@ import { AuthModule } from "./authentication/auth.module";
     }),
     UsersModule,
     AuthModule,
+    PostsModule,
+    FlashcardsModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
