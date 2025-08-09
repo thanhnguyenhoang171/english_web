@@ -6,14 +6,17 @@ import {
 } from "./dto/create-user.dto";
 import { InjectModel } from "@nestjs/mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
-import { Model } from "mongoose";
 
 import { hashPassword } from "src/utils/password-hasing";
 import { compareSync } from "bcrypt";
+import * as softDeletePluginMongoose from "soft-delete-plugin-mongoose";
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: softDeletePluginMongoose.SoftDeleteModel<UserDocument>,
+  ) {}
 
   async createNewUser(createUserDto: CreateUserDto) {
     const user = await this.userModel.create(createUserDto);

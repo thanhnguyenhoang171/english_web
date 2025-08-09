@@ -5,6 +5,7 @@ import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { TransformInterceptor } from "./interceptors/transform.interceptor";
 import cookieParser from "cookie-parser";
 import { JwtAuthGuard } from "./authentication/jwt-auth.guard";
+import * as bodyParser from "body-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,10 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   app.useGlobalPipes(new ValidationPipe());
+
+  // upload file
+  app.use(bodyParser.json({ limit: "10mb" }));
+  app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
   //config cookies
   app.use(cookieParser());
