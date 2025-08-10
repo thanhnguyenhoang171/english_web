@@ -11,6 +11,7 @@ import { AuthModule } from "./authentication/auth.module";
 import { PostsModule } from './posts/posts.module';
 import { FlashcardsModule } from './flashcards/flashcards.module';
 import { CloudinaryModule } from "./cloudinary/cloudinary.module";
+import { CommentsModule } from './comments/comments.module';
 
 
 @Module({
@@ -41,6 +42,7 @@ import { CloudinaryModule } from "./cloudinary/cloudinary.module";
     PostsModule,
     FlashcardsModule,
     CloudinaryModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
