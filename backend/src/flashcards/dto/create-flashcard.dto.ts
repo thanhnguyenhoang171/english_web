@@ -7,24 +7,28 @@ import {
 } from "class-validator";
 
 export class CreateFlashcardDto {
-  @IsEnum(["text", "image"])
+  @IsOptional()
+  @IsEnum(["text", "image"], {
+    message: "type phải là 'text' hoặc 'image'",
+  })
   type: "text" | "image";
 
   @ValidateIf((o) => o.type === "text")
-  @IsNotEmpty()
-  @IsString()
+  @IsNotEmpty({ message: "frontText không được để trống khi type là 'text'" })
+  @IsString({ message: "frontText phải là chuỗi" })
   frontText?: string;
 
   @ValidateIf((o) => o.type === "image")
   @IsOptional()
   frontImage?: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsNotEmpty({ message: "back không được để trống" })
+  @IsOptional()
+  @IsString({ message: "back phải là chuỗi" })
   back: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: "example phải là chuỗi" })
   example?: string;
 
   @IsOptional()

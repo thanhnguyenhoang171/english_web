@@ -1,13 +1,19 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateFlashcardDto } from "./dto/create-flashcard.dto";
 import { UpdateFlashcardDto } from "./dto/update-flashcard.dto";
 import { IUser } from "src/interfaces/user.interface";
 import { InjectModel } from "@nestjs/mongoose";
 import { Flashcard, FlashcardDocument } from "./schemas/flashcard.schema";
 import * as softDeletePluginMongoose from "soft-delete-plugin-mongoose";
-import { InjectRepository } from "@nestjs/typeorm";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 import { extractPublicIdFromUrl } from "src/utils/extract-public-id-from-url";
+import mongoose from "mongoose";
+import { Multer } from "multer";
 
 @Injectable()
 export class FlashcardsService {
@@ -56,25 +62,20 @@ export class FlashcardsService {
     return await this.flashcardModel.create(created);
   }
 
-  async remove(id: string, user: IUser) {
-    const flashcard = await this.flashcardModel.findById(id);
+  async remove(_id: string, user: IUser) {
+    const flashcard = await this.flashcardModel.findById(_id);
     if (!flashcard) {
       throw new BadRequestException("Flashcard not found");
     }
 
     if (flashcard.type === "image" && flashcard.frontImage) {
-      // get public_id from url frontImage  to remove in cloudinary
-      const publicId = extractPublicIdFromUrl(flashcard.frontImage);
-      if (publicId) {
-        const deleteResult = await this.cloudinaryService.deleteImage(publicId);
-        console.log("Delete result:", deleteResult);
-      }
+      await this.removeImgFromCloudinary(_id, flashcard.frontImage);
     }
 
-    const deleted = await this.flashcardModel.softDelete({ _id: id });
+    const deleted = await this.flashcardModel.softDelete({ _id });
 
     await this.flashcardModel.updateOne(
-      { _id: id },
+      { _id },
       {
         deletedBy: {
           _id: user._id,
@@ -84,5 +85,125 @@ export class FlashcardsService {
     );
 
     return deleted;
+  }
+
+  async getAll() {
+    try {
+      const flashcards = await this.flashcardModel.find();
+      return flashcards;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getById(_id: string) {
+    try {
+      // check valid mongo ObjectID
+      const isValid = mongoose.Types.ObjectId.isValid(_id);
+      if (!isValid) {
+        throw new NotFoundException(`Flashcard with ID ${_id} not found`);
+      }
+      const flashcard = await this.flashcardModel.findById(_id);
+      return flashcard;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async update(
+    _id: string,
+    updateFlashcardDto: UpdateFlashcardDto,
+    user: IUser,
+    file?: Express.Multer.File,
+  ) {
+    try {
+      // Check valid mongo id
+      if (!mongoose.Types.ObjectId.isValid(_id)) {
+        throw new NotFoundException(`Flashcard with ID ${_id} not found`);
+      }
+      const flashcard = await this.flashcardModel.findById(_id);
+      if (!flashcard) {
+        throw new NotFoundException(`Flashcard with ID ${_id} not found`);
+      }
+
+      const typeFlashcard = flashcard.type;
+      let updateData: any = {
+        back: updateFlashcardDto.back ?? flashcard.back,
+        example: updateFlashcardDto.example ?? flashcard.example,
+        tags: updateFlashcardDto.tags ?? flashcard.tags,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      };
+
+      if (typeFlashcard === "text") {
+        updateData.frontText =
+          updateFlashcardDto.frontText ?? flashcard.frontText;
+      } else if (typeFlashcard === "image") {
+        // upload + xóa ảnh cũ
+        if (file) {
+          // Xóa ảnh cũ sau
+          if (flashcard.frontImage) {
+            await this.removeImgFromCloudinary(_id, flashcard.frontImage);
+          }
+
+          const uploaded = await this.cloudinaryService.uploadImage(file);
+
+          updateData.frontImage = uploaded.secure_url;
+        } else {
+          //  giữ nguyên ảnh cũ
+          updateData.frontImage = flashcard.frontImage;
+        }
+      }
+
+      // Update new flash card
+      const updatedFlashcard = await this.flashcardModel.findByIdAndUpdate(
+        _id,
+        updateData,
+        { new: true },
+      );
+
+      return updatedFlashcard;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async removeImgFromCloudinary(_id: string, frontImage: string) {
+    // get public_id from url frontImage to remove in cloudinary
+    const publicId = extractPublicIdFromUrl(frontImage);
+
+    if (!publicId) {
+      console.warn(`Invalid Cloudinary public ID for flashcard ${_id}`);
+      return;
+    }
+
+    try {
+      const deleteResult = await this.cloudinaryService.deleteImage(publicId);
+
+      //  { result: 'ok' } success
+      if (deleteResult?.result === "ok") {
+        await this.flashcardModel.updateOne({ _id }, { frontImage: null });
+      } else {
+        console.warn(
+          `Failed to delete image from Cloudinary for flashcard ${_id}: ${JSON.stringify(deleteResult)}`,
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Error deleting image from Cloudinary for flashcard ${_id}:`,
+        error,
+      );
+    }
   }
 }
