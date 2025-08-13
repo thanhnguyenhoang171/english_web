@@ -19,6 +19,8 @@
 ai-english-platform/
 ├─ backend/        # NestJS backend
 ├─ frontend/       # Vite + React frontend
+
+```
    -- Mẫu biến môi trường
 **Backend:**
   _backend/.env_
