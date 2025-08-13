@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from "@nestjs/common";
 import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
@@ -15,38 +16,49 @@ import { ResponseMessage } from "src/decorator/response-message";
 import { User } from "src/decorator/IUser-decorator";
 import type { IUser } from "src/interfaces/user.interface";
 
-@Controller("posts/:postId/comments")
+@Controller("posts")
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
-
-  @Post()
+  @Get("comments/owner")
+  @ResponseMessage("Fetch all flashcards successfully")
+  async fetchAllOwnerComment(@User() user: IUser) {
+    return await this.commentsService.getAllOwnerComment(user);
+  }
+  @Post(":postId/comments")
   @ResponseMessage("Create a new comment successfully")
-  create(
+  async create(
     @Param("postId") postId: string,
     @Body() createCommentDto: CreateCommentDto,
     @User() user: IUser,
   ) {
-    return this.commentsService.create(postId, createCommentDto, user);
+    return await this.commentsService.create(postId, createCommentDto, user);
   }
 
-  @Get()
+  @Get(":postId/comments")
+  @Public()
   @ResponseMessage("Get all comments of a post successfully")
-  findAllPostComment(@Param("postId") postId: string) {
-    return this.commentsService.findAllPostComment(postId);
+  async indAllPostComment(@Param("postId") postId: string) {
+    return await this.commentsService.findAllPostComment(postId);
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.commentsService.findOne(+id);
+  @Patch("/comments/:commentId")
+  @ResponseMessage("Update a comment of a post successfully")
+  async updateComment(
+    @Param("commentId") commentId: string,
+    @Body() updateDto: UpdateCommentDto,
+    @User() user: IUser,
+  ) {
+    return await this.commentsService.updateComment(
+      commentId,
+
+      updateDto,
+      user,
+    );
   }
 
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(+id, updateCommentDto);
-  }
-
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.commentsService.remove(+id);
+  @Delete("/comments/:commentId")
+  @ResponseMessage("Delete a comment successfully")
+  async delete(@Param("commentId") commentId: string, @User() user: IUser) {
+    return await this.commentsService.deleteComment(commentId, user);
   }
 }

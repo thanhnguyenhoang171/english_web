@@ -3,19 +3,29 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Logger,
+  BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { Post, PostDocument } from "./schemas/post.schema";
 import { InjectModel, Schema } from "@nestjs/mongoose";
 import * as softDeletePluginMongoose from "soft-delete-plugin-mongoose";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import type { IUser } from "src/interfaces/user.interface";
+
+let aqp;
+
+async function getAqp() {
+  if (!aqp) {
+    const mod = await import("api-query-params");
+    aqp = mod.default;
+  }
+  return aqp;
+}
 
 @Injectable()
 export class PostsService {
-  private readonly logger = new Logger(PostsService.name);
-
   constructor(
     @InjectModel(Post.name)
     private readonly postModel: softDeletePluginMongoose.SoftDeleteModel<PostDocument>,
@@ -31,10 +41,9 @@ export class PostsService {
         },
       };
       const post = await this.postModel.create(createData);
-      console.log("Check create: ", post);
+
       return post;
     } catch (error) {
-      this.logger.error(error);
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -43,7 +52,6 @@ export class PostsService {
       const postList = await this.postModel.find().sort({ createdAt: -1 });
       return postList;
     } catch (error) {
-      this.logger.error(error);
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -56,8 +64,6 @@ export class PostsService {
       }
       return post;
     } catch (error) {
-      this.logger.error(error);
-
       if (error instanceof NotFoundException) {
         throw error; // giữ nguyên 404
       }
@@ -71,7 +77,20 @@ export class PostsService {
       // check valid id
       const isValid = mongoose.Types.ObjectId.isValid(_id);
       if (!isValid) {
-        throw new NotFoundException(`Post with ID ${_id} not found`);
+        throw new BadRequestException(`Post with ID ${_id} not found`);
+      }
+      // Check exist post
+      const post = await this.postModel.findById({ _id });
+      if (!post) {
+        throw new NotFoundException("Post can not found");
+      }
+
+      // Check owner
+      if (
+        user._id !== post.createdBy._id.toString() &&
+        user.role.toString() !== "admin"
+      ) {
+        throw new ForbiddenException("You are now allow to modify this post");
       }
       const updatedPost = await this.postModel.updateOne(
         { _id },
@@ -79,7 +98,7 @@ export class PostsService {
           title: updatePostDto.title,
           content: updatePostDto.content,
           meaning: updatePostDto?.meaning,
-          // imageUrl: updatePostDto?.imageUrl,
+          flashcards: updatePostDto.flashcards,
           updatedBy: {
             _id: user._id,
             email: user.email,
@@ -87,15 +106,14 @@ export class PostsService {
         },
         { new: true },
       );
-      if (!updatedPost) {
-        throw new NotFoundException(`Post with ID ${_id} not found`);
-      }
       return updatedPost;
     } catch (error) {
-      this.logger.error(error);
-
-      if (error instanceof NotFoundException) {
-        throw error; // giữ nguyên 404
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
       }
 
       throw new InternalServerErrorException(error.message);
@@ -106,7 +124,20 @@ export class PostsService {
     try {
       const isValid = mongoose.Types.ObjectId.isValid(_id);
       if (!isValid) {
-        throw new NotFoundException(`Post with ID ${_id} not found`);
+        throw new BadRequestException(`Post with ID ${_id} not found`);
+      }
+      // Check exist post
+      const post = await this.postModel.findById({ _id });
+      if (!post) {
+        throw new NotFoundException("Post not  found");
+      }
+
+      // Check owner
+      if (
+        user._id !== post.createdBy._id.toString() &&
+        user.role.toString() !== "admin"
+      ) {
+        throw new ForbiddenException("You are not allow to remove this post");
       }
       const deleted = await this.postModel.softDelete({ _id });
 
@@ -119,13 +150,67 @@ export class PostsService {
       });
       return deleted;
     } catch (error) {
-      this.logger.error(error);
-
-      if (error instanceof NotFoundException) {
-        throw error; // giữ nguyên 404
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
       }
 
       throw new InternalServerErrorException(error.message);
     }
+  }
+  async getAllPostOwner(user: IUser) {
+    try {
+      const posts = await this.postModel
+        .find({
+          "createdBy._id": user._id,
+        })
+        .sort({ createdAt: -1 });
+
+      return posts;
+    } catch (error) {
+      throw new InternalServerErrorException("Server error");
+    }
+  }
+
+  // get all post with pagination
+  async getAllPosts(currentPage: number, limit: number, qs: string) {
+    const aqp = await getAqp();
+
+    const { filter, sort, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+    // console.log("filter:", filter);
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 5;
+
+    const totalItems = await this.postModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.postModel
+      .find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort && Object.keys(sort).length > 0 ? sort : { createdAt: -1 })
+
+      // flashcards
+      .populate({
+        path: "flashcards",
+        select: "type frontText frontImage back example tags -_id", //hide  _id
+      });
+
+    return {
+      meta: {
+        current: currentPage,
+        pageSize: limit,
+        pages: totalPages,
+        total: totalItems,
+      },
+      result: result,
+    };
   }
 }

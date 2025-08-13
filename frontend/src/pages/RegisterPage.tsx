@@ -1,8 +1,18 @@
-import { Button, Flex, Form, Input, InputNumber, message, Select } from 'antd';
+import {
+    Button,
+    Flex,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    notification,
+    Select,
+} from 'antd';
 import '../styles/RegisterPage.style.css';
 import Title from 'antd/es/typography/Title';
-import { useAppDispatch, useAppSelector } from '../redux/hook';
-import { registerUser } from '../redux/auth/register.slice';
+import { useNavigate } from 'react-router';
+import { callRegister } from '../api/accountApi';
+import { useState } from 'react';
 
 const { Option } = Select;
 
@@ -30,31 +40,39 @@ const tailFormItemLayout = {
     },
 };
 export default function RegisterPage() {
-    const dispatch = useAppDispatch();
-    const { loading, error } = useAppSelector((state: any) => state.register);
+    const navigate = useNavigate();
+    const [isSubmit, setIsSubmit] = useState(false);
 
     const [form] = Form.useForm();
 
     const onFinish = async (values: any) => {
-        const userData = {
-            email: values.email,
-            password: values.password,
-            name: values.name,
-            age: values.age,
-            address: values.address,
-            gender: values.gender,
-            confirmPassword: values.confirmPassword,
-        };
-        const result = await dispatch(registerUser(userData));
-        if (registerUser.fulfilled.match(result)) {
-            message.success('Register successful!');
-            form.resetFields();
+        const { name, email, password, age, gender, address, confirmPassword } =
+            values;
+        setIsSubmit(true);
+        const res = await callRegister(
+            name,
+            email,
+            password as string,
+            +age,
+            gender,
+            address,
+            confirmPassword,
+        );
+        setIsSubmit(false);
+        if (res?.data?.data) {
+            message.success('Đăng ký tài khoản thành công!');
+            navigate('/login');
+            setIsSubmit(false);
         } else {
-            message.error(
-                typeof result.payload === 'string'
-                    ? result.payload
-                    : 'Failed to register',
-            );
+            notification.error({
+                message: 'Có lỗi xảy ra',
+                description:
+                    res.data.message && Array.isArray(res.data.message)
+                        ? res.data.message[0]
+                        : res.data.message,
+                duration: 5,
+            });
+            setIsSubmit(false);
         }
     };
 
@@ -212,7 +230,7 @@ export default function RegisterPage() {
                         <Button
                             type='primary'
                             htmlType='submit'
-                            loading={loading}
+                            loading={isSubmit}
                         >
                             Register
                         </Button>

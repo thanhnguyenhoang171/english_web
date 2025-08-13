@@ -1,10 +1,23 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
-import { Alert, Button, Checkbox, Flex, Form, Input, notification } from 'antd';
+import {
+   
+    Button,
+    Checkbox,
+    Flex,
+    Form,
+    Input,
+
+    notification,
+} from 'antd';
 import '../styles/loginPage.style.css';
 import Title from 'antd/es/typography/Title';
 import { useAppDispatch, useAppSelector } from '../redux/hook';
-import { loginUser } from '../redux/auth/login.slice';
+
+import { useLocation} from 'react-router-dom';
+import { callLogin } from '../api/accountApi';
+import { setUserLoginInfo } from '../redux/auth/account.slice';
+
 type FieldType = {
     username?: string;
     password?: string;
@@ -13,31 +26,55 @@ type FieldType = {
 
 export default function LoginPage() {
     const dispatch = useAppDispatch();
-    const { error, loading, success } = useAppSelector(
-        (state: any) => state.login,
+    const [isSubmit, setIsSubmit] = useState(false);
+    // const navigate = useNavigate();
+    const isAuthenticated = useAppSelector(
+        (state) => state.account.isAuthenticated,
     );
+    // const isLoading = useAppSelector((state) => state.account.isLoading);
+
+    let location = useLocation();
+    let param = new URLSearchParams(location.search);
+    let callback = param?.get('callback');
     useEffect(() => {
-        if (success) {
-            notification.success({
-                message: 'Login Successful',
-                description: 'Welcome back!',
-            });
-        } else if (error) {
+        if (isAuthenticated) {
+            window.location.href = '/';
+        }
+    });
+    const onFinish: FormProps<FieldType>['onFinish'] = async (values: any) => {
+        const { username, password } = values;
+        setIsSubmit(true);
+        try {
+            const res = await callLogin(username, password);
+            setIsSubmit(false);
+            if (res?.data?.data) {
+                localStorage.setItem(
+                    'access_token',
+                    res.data.data.access_token,
+                );
+
+                dispatch(setUserLoginInfo(res.data.data?.user));
+                alert("Đăng nhập thành công")
+                window.location.href = callback ? callback : '/';
+            } else {
+                notification.error({
+                    message: 'Có lỗi xảy ra',
+                    description:
+                        res.data.message && Array.isArray(res.data.message)
+                            ? res.data.message[0]
+                            : res.data.message,
+                    duration: 5,
+                });
+            }
+        } catch (error: any) {
+            setIsSubmit(false);
             notification.error({
-                message: 'Login Failed',
-                description: error,
+                message: 'Có lỗi xảy ra',
+                description:
+                    error.response?.data?.message || 'Đăng nhập thất bại!',
+                duration: 5,
             });
         }
-    }, [error, success]);
-    const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-        console.log('Success:', values);
-
-        dispatch(
-            loginUser({
-                username: values?.username || '',
-                password: values?.password || '',
-            }),
-        );
     };
 
     const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (
@@ -64,12 +101,6 @@ export default function LoginPage() {
                     >
                         Ready to Continue? Log In Below
                     </Title>
-
-                    {error && (
-                        <Form.Item>
-                            <Alert type='error' message={error} />
-                        </Form.Item>
-                    )}
 
                     <Form.Item<FieldType>
                         name='username'
@@ -121,7 +152,7 @@ export default function LoginPage() {
                         <Button
                             type='primary'
                             htmlType='submit'
-                            loading={loading}
+                            loading={isSubmit}
                         >
                             Submit
                         </Button>

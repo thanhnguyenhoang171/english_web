@@ -10,6 +10,6 @@ export class CreatePostDto {
   @IsOptional()
   meaning: string;
 
-//   @IsOptional()
-//   imageUrl: string;
+  @IsOptional()
+  flashcards: string[];
 }

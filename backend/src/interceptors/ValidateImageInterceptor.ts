@@ -14,20 +14,24 @@ export class ValidateImageInterceptor implements NestInterceptor {
 
     if (req.body?.type === "image") {
       const file = req.file;
-      if (!file) {
+      const isCreate = req.method === "POST";
+
+      if (isCreate && !file) {
         throw new BadRequestException("File image is required.");
       }
 
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-      if (!allowedTypes.includes(file.mimetype)) {
-        throw new BadRequestException(
-          `Invalid file type. Allowed: ${allowedTypes.join(", ")}`,
-        );
-      }
+      if (file) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        if (!allowedTypes.includes(file.mimetype)) {
+          throw new BadRequestException(
+            `Invalid file type. Allowed: ${allowedTypes.join(", ")}`,
+          );
+        }
 
-      const maxSize = 2 * 1024 * 1024;
-      if (file.size > maxSize) {
-        throw new BadRequestException("File size exceeds 2MB limit.");
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+          throw new BadRequestException("File size exceeds 2MB limit.");
+        }
       }
     }
 
