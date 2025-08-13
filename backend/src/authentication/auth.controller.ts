@@ -13,6 +13,8 @@ import { ResponseMessage } from "src/decorator/response-message";
 import { RegisterUserDto } from "src/users/dto/create-user.dto";
 import { LocalAuthGuard } from "./local-auth.guard";
 import { Public } from "src/decorator/auth-guard";
+import { User } from "src/decorator/IUser-decorator";
+import type { IUser } from "src/interfaces/user.interface";
 
 @Controller("auth")
 export class AuthController {
@@ -29,18 +31,35 @@ export class AuthController {
 
   @Public()
   @ResponseMessage("Register user successful")
-  @Post("register")
+  @Post("/register")
   async handleRegister(@Body() user: RegisterUserDto) {
     return this.authService.register(user);
   }
+
   @Public()
   @ResponseMessage("Get user by refresh token successful")
-  @Get("refresh")
+  @Get("/refresh")
   handleRefreshToken(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
     const refreshToken = request.cookies["refresh_token"];
-    return this.authService.processNewAccessToken(refreshToken, response);
+    console.log("Check refresh token = ", refreshToken);
+    return this.authService.processNewToken(refreshToken, response);
+  }
+
+  @ResponseMessage("Get user information")
+  @Get("/account")
+  async handleGetAccount(@User() user: IUser) {
+    return { user };
+  }
+
+  @ResponseMessage("Logout User")
+  @Post("/logout")
+  handleLogout(
+    @Res({ passthrough: true }) response: Response,
+    @User() user: IUser,
+  ) {
+    return this.authService.logout(response, user);
   }
 }

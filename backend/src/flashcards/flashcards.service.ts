@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -30,66 +31,101 @@ export class FlashcardsService {
   ) {
     let frontImageUrl: string | null = null;
     let frontText: string | null = null;
-
-    if (createFlashcardDto.type === "text") {
-      if (!createFlashcardDto.frontText) {
-        throw new BadRequestException("frontText is required for text type");
+    try {
+      if (createFlashcardDto.type === "text") {
+        if (!createFlashcardDto.frontText) {
+          throw new BadRequestException("frontText is required for text type");
+        }
+        frontText = createFlashcardDto.frontText;
       }
-      frontText = createFlashcardDto.frontText;
-    }
 
-    if (createFlashcardDto.type === "image") {
-      if (!file) {
-        throw new BadRequestException("Image file is required for image type");
+      if (createFlashcardDto.type === "image") {
+        if (!file) {
+          throw new BadRequestException(
+            "Image file is required for image type",
+          );
+        }
+        const uploaded = await this.cloudinaryService.uploadImage(file);
+        frontImageUrl = uploaded.secure_url;
       }
-      const uploaded = await this.cloudinaryService.uploadImage(file);
-      frontImageUrl = uploaded.secure_url;
-    }
 
-    const created = new this.flashcardModel({
-      type: createFlashcardDto.type,
-      frontText,
-      frontImage: frontImageUrl,
-      back: createFlashcardDto.back,
-      example: createFlashcardDto.example ?? null,
-      tags: createFlashcardDto.tags ?? [],
-      createdBy: {
-        _id: user._id,
-        email: user.email,
-      },
-    });
-
-    return await this.flashcardModel.create(created);
-  }
-
-  async remove(_id: string, user: IUser) {
-    const flashcard = await this.flashcardModel.findById(_id);
-    if (!flashcard) {
-      throw new BadRequestException("Flashcard not found");
-    }
-
-    if (flashcard.type === "image" && flashcard.frontImage) {
-      await this.removeImgFromCloudinary(_id, flashcard.frontImage);
-    }
-
-    const deleted = await this.flashcardModel.softDelete({ _id });
-
-    await this.flashcardModel.updateOne(
-      { _id },
-      {
-        deletedBy: {
+      const created = new this.flashcardModel({
+        type: createFlashcardDto.type,
+        frontText,
+        frontImage: frontImageUrl,
+        back: createFlashcardDto.back,
+        example: createFlashcardDto.example ?? null,
+        tags: createFlashcardDto.tags ?? [],
+        createdBy: {
           _id: user._id,
           email: user.email,
         },
-      },
-    );
+      });
 
-    return deleted;
+      return await this.flashcardModel.create(created);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error internal server");
+    }
   }
 
-  async getAll() {
+  async remove(_id: string, user: IUser) {
     try {
-      const flashcards = await this.flashcardModel.find();
+      // check id
+      if (!mongoose.Types.ObjectId.isValid(_id)) {
+        throw new BadRequestException("Invalid flashcardId");
+      }
+      const flashcard = await this.flashcardModel.findById(_id);
+      if (!flashcard) {
+        throw new NotFoundException("Flashcard not found");
+      }
+      // check owner
+      if (
+        user._id !== flashcard.createdBy._id.toString() &&
+        user.role.toString() !== "admin"
+      ) {
+        throw new ForbiddenException(
+          "You are not allow to remove this flashcard",
+        );
+      }
+      if (flashcard.type === "image" && flashcard.frontImage) {
+        await this.removeImgFromCloudinary(_id, flashcard.frontImage);
+      }
+
+      const deleted = await this.flashcardModel.softDelete({ _id });
+
+      await this.flashcardModel.updateOne(
+        { _id },
+        {
+          deletedBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        },
+      );
+
+      return deleted;
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error internal server");
+    }
+  }
+
+  async getAll(user: IUser) {
+    try {
+      const flashcards = await this.flashcardModel
+        .find({
+          "createdBy._id": user._id,
+        })
+        .sort({ createdAt: -1 });
       return flashcards;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -101,12 +137,12 @@ export class FlashcardsService {
       // check valid mongo ObjectID
       const isValid = mongoose.Types.ObjectId.isValid(_id);
       if (!isValid) {
-        throw new NotFoundException(`Flashcard with ID ${_id} not found`);
+        throw new BadRequestException(`Flashcard with ID ${_id} not found`);
       }
       const flashcard = await this.flashcardModel.findById(_id);
       return flashcard;
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof BadRequestException) {
         throw error;
       }
       throw new InternalServerErrorException(error.message);
@@ -122,13 +158,22 @@ export class FlashcardsService {
     try {
       // Check valid mongo id
       if (!mongoose.Types.ObjectId.isValid(_id)) {
-        throw new NotFoundException(`Flashcard with ID ${_id} not found`);
+        throw new BadRequestException(`Flashcard with ID ${_id} not found`);
       }
       const flashcard = await this.flashcardModel.findById(_id);
       if (!flashcard) {
         throw new NotFoundException(`Flashcard with ID ${_id} not found`);
       }
 
+      // Check owner
+      if (
+        user._id !== flashcard.createdBy._id.toString() &&
+        user.role.toString() !== "admin"
+      ) {
+        throw new ForbiddenException(
+          "You are not allow to modify this flashcard",
+        );
+      }
       const typeFlashcard = flashcard.type;
       let updateData: any = {
         back: updateFlashcardDto.back ?? flashcard.back,
@@ -171,7 +216,8 @@ export class FlashcardsService {
     } catch (error) {
       if (
         error instanceof NotFoundException ||
-        error instanceof BadRequestException
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException
       ) {
         throw error;
       }

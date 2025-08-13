@@ -1,10 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-import registerSlice from './auth/register.slice';
-import loginSlice from './auth/login.slice';
+import accountReducer from './auth/account.slice';
+import postReducer from './auth/post.slice';
+import flashcardReducer from './flashcard/flashcard.slice';
+import ownerPostReducer from './post/postOwner.slice';
 export const store = configureStore({
     reducer: {
-        register: registerSlice,
-        login: loginSlice,
+        // register: registerSlice,
+        // login: loginSlice,
+        account: accountReducer,
+        post: postReducer,
+        flashcard: flashcardReducer,
+        ownerPost: ownerPostReducer,
     },
 });
 

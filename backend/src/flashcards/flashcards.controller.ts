@@ -47,10 +47,9 @@ export class FlashcardsController {
   }
 
   @Get()
-  @Public()
   @ResponseMessage("Fetch all flashcards successfully")
-  async fetchAll() {
-    return await this.flashcardsService.getAll();
+  async fetchAll(@User() user: IUser) {
+    return await this.flashcardsService.getAll(user);
   }
 
   @Get(":id")
@@ -69,6 +68,11 @@ export class FlashcardsController {
     @User() user: IUser,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    return await this.flashcardsService.update(id, updateFlashcardDto, user, file);
+    return await this.flashcardsService.update(
+      id,
+      updateFlashcardDto,
+      user,
+      file,
+    );
   }
 }

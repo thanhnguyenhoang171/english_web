@@ -8,10 +8,10 @@ export class Flashcard {
   @Prop({ type: String, enum: ["text", "image"], required: true })
   type: "text" | "image";
   @Prop({ type: String })
-  frontText: string;
+  frontText?: string;
 
   @Prop({ type: String })
-  frontImage: string;
+  frontImage?: string;
 
   @Prop({ type: String, required: true })
   back: string;
