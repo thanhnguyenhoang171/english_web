@@ -23,32 +23,32 @@ ai-english-platform/
 ```
    -- Mẫu biến môi trường
 **Backend:**
-  _backend/.env_
-
+backend/.env:
+```
 PORT=
 HOST=localhost
-
 MONGODB_URI=
-
 JWT_SECRET=
 JWT_EXPIRATION=
-
 JWT_REFRESH_SECRET=
 JWT_REFRESH_EXPIRATION_TIME=
-
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET
-
+```
 **Frontend:**
-_frontend/.env.development_
+frontend/.env.development:
+```
 NODE_ENV=development
 PORT=
 VITE_BACKEND_URL=
-_frontend/.env.production_
+```
+frontend/.env.production:
+```
 NODE_ENV=production
 PORT=
 VITE_BACKEND_URL=
+```
 
 ## ⚡ Cài đặt và chạy dự án
 
