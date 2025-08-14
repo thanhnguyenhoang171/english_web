@@ -1,18 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Table,
-    Button,
-  
-    Form,
-  
-    Space,
-    Popconfirm,
-    message,
-} from 'antd';
-import {
-    callDeleteFlashcard,
-  
-} from '../../api/flashcardApi';
+import { Table, Button, Form, Space, Popconfirm, message } from 'antd';
+import { callDeleteFlashcard } from '../../api/flashcardApi';
 import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { fetchFlashcard } from '../../redux/flashcard/flashcard.slice';
 import { FlashcardAddModal } from './flashcardAdd.modal';
@@ -47,11 +35,21 @@ const FlashcardList: React.FC = () => {
             title: 'Type',
             dataIndex: 'type',
             key: 'type',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Front Text',
             dataIndex: 'frontText',
             key: 'frontText',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Front Image',
@@ -59,24 +57,46 @@ const FlashcardList: React.FC = () => {
             key: 'frontImage',
             render: (url: string) =>
                 url ? (
-                    <img src={url} alt='Front' style={{ maxHeight: 50 }} />
+                    <img
+                        src={url}
+                        alt='Front'
+                        style={{
+                            maxHeight: 50,
+                            maxWidth: 80,
+                            objectFit: 'cover',
+                        }}
+                    />
                 ) : null,
         },
         {
             title: 'Back',
             dataIndex: 'back',
             key: 'back',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Example',
             dataIndex: 'example',
             key: 'example',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Tags',
             dataIndex: 'tags',
             key: 'tags',
-            render: (tags: string[]) => tags.join(', '),
+            render: (tags: string[]) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {tags.join(', ')}
+                </div>
+            ),
         },
         {
             title: 'Actions',

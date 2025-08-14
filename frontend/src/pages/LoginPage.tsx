@@ -48,6 +48,7 @@ export default function LoginPage() {
                 alert('Đăng nhập thành công');
                 window.location.href = callback ? callback : '/';
             } else {
+                alert('Đăng nhập thất bại');
                 notification.error({
                     message: 'Có lỗi xảy ra',
                     description:
@@ -59,6 +60,7 @@ export default function LoginPage() {
             }
         } catch (error: any) {
             setIsSubmit(false);
+            alert('Đăng nhập thất bại');
             notification.error({
                 message: 'Có lỗi xảy ra',
                 description:

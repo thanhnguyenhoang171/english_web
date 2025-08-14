@@ -5,7 +5,7 @@ import type { Flashcard } from '../flashcard/flashcard.modal';
 import type { IComment } from '../../types/backend';
 import { callFetchComment, callPostComment } from '../../api/commentApi';
 import CommentList from '../comment/commentList';
-
+import DOMPurify from 'dompurify';
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 
@@ -117,8 +117,21 @@ const PostComponent: React.FC<PostProps> = ({
                         {createdAt ? new Date(createdAt).toLocaleString() : ''}
                     </p>
                 </div>
-                <Paragraph>{content}</Paragraph>
-                <Paragraph>Meaning: {meaning}</Paragraph>
+                <Paragraph>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(content || ''),
+                        }}
+                    />
+                </Paragraph>
+                <Paragraph>
+                    Meaning:
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(meaning || ''),
+                        }}
+                    />
+                </Paragraph>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Button
                         type='link'
