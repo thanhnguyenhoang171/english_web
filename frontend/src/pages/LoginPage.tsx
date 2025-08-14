@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
-import {
-   
-    Button,
-    Checkbox,
-    Flex,
-    Form,
-    Input,
-
-    notification,
-} from 'antd';
-import '../styles/loginPage.style.css';
+import { Button, Checkbox, Flex, Form, Input, notification } from 'antd';
+import '@/styles/loginPage.style.css';
 import Title from 'antd/es/typography/Title';
 import { useAppDispatch, useAppSelector } from '../redux/hook';
 
-import { useLocation} from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { callLogin } from '../api/accountApi';
 import { setUserLoginInfo } from '../redux/auth/account.slice';
 
@@ -54,7 +45,7 @@ export default function LoginPage() {
                 );
 
                 dispatch(setUserLoginInfo(res.data.data?.user));
-                alert("Đăng nhập thành công")
+                alert('Đăng nhập thành công');
                 window.location.href = callback ? callback : '/';
             } else {
                 notification.error({

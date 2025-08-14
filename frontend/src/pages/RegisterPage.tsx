@@ -8,7 +8,7 @@ import {
     notification,
     Select,
 } from 'antd';
-import '../styles/RegisterPage.style.css';
+import '@/styles/registerPage.style.css';
 import Title from 'antd/es/typography/Title';
 import { useNavigate } from 'react-router';
 import { callRegister } from '../api/accountApi';

@@ -1,7 +1,8 @@
 // src/components/FlashcardModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Card, Button } from 'antd';
-import '../../styles/flashcard.style.css';
+import '@/styles/flashcard.style.css';
+
 
 export interface Flashcard {
     _id?: string;
