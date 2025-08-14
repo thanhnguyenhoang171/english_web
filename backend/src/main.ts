@@ -10,8 +10,8 @@ import * as bodyParser from "body-parser";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
-  const PORT = configService.get<number>("PORT") || 3001;
-  const HOST = configService.get<string>("HOST");
+  const PORT = process.env.PORT || configService.get<number>("PORT") || 3001;
+  const HOST = configService.get<string>("HOST") || "0.0.0.0";
 
   // Define global interceptors and pipes
   const reflector = app.get(Reflector);
