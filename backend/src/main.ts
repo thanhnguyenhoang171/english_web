@@ -35,12 +35,8 @@ async function bootstrap() {
 
   //config cors
   app.enableCors({
-    origin: [
-    'http://localhost:5173', // local dev
-    'https://english-rkhc46krq-thane-nguyens-projects.vercel.app', // vercel domain
-  ],
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
