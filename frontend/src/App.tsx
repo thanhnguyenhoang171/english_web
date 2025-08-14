@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { createBrowserRouter, useLocation } from 'react-router';
-import { Alert, Layout, theme, } from 'antd';
-import { Content, Footer } from 'antd/es/layout/layout';
+import { Alert, Layout, theme } from 'antd';
+import { Content } from 'antd/es/layout/layout';
 import { Outlet, RouterProvider } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { fetchAccount } from './redux/auth/account.slice';
@@ -16,6 +16,7 @@ import './styles/main.css';
 import FlashcardList from './components/flashcard/flashcardList';
 import PostOwnerList from './components/post/postOwnerList';
 import { CommentOwner } from './components/comment/commentOwner';
+import { AppFooter } from './layouts/Footer';
 
 const LayoutClient = () => {
     const {
@@ -49,10 +50,7 @@ const LayoutClient = () => {
                             <Outlet context={[searchTerm, setSearchTerm]} />
                         </div>
                     </Content>
-                    <Footer style={{ textAlign: 'center' }}>
-                        Ant Design ©{new Date().getFullYear()} Created by Ant
-                        UED
-                    </Footer>
+                    <AppFooter />
                 </Layout>
             </div>
         </>
