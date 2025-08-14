@@ -11,7 +11,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
 import { HeaderApp } from './layouts/Header';
-import './styles/main.css';
+import '@/styles/main.css';
 
 import FlashcardList from './components/flashcard/flashcardList';
 import PostOwnerList from './components/post/postOwnerList';
