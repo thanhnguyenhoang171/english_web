@@ -4,7 +4,7 @@ import dns from 'dns';
 //running on localhost instead of IP 127.0.0.1
 // https://vitejs.dev/config/server-options.html#server-host
 dns.setDefaultResultOrder('verbatim');
-
+// fixing
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
     // Load env file based on `mode` in the current working directory.
