@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Modal,  Form, Input, message, Select } from 'antd';
+import { Modal, Form, Input, message, Select } from 'antd';
 import type { Flashcard } from '../flashcard/flashcard.modal';
 import { callFetchFlashcard } from '../../api/flashcardApi';
 import { callPostNewPost } from '../../api/postApi';
 import { useAppDispatch, useAppSelector } from '../../redux/hook';
 import { fetchPost } from '../../redux/auth/post.slice';
+import TipTapEditor from '../TipTapEditor';
 
 interface PostModalProps {
     visible: boolean;
@@ -63,13 +64,31 @@ const PostModal: React.FC<PostModalProps> = ({ visible, onClose }) => {
     return (
         <Modal
             open={visible}
-            title='Tạo bài viết mới'
+            title={
+                <span style={{ fontWeight: 600, fontSize: 20 }}>
+                    Tạo bài viết mới
+                </span>
+            }
             onCancel={onClose}
             onOk={handleSubmit}
             confirmLoading={loading}
             okText='Đăng bài'
+            width={800}
+            bodyStyle={{
+                padding: '30px 40px',
+                maxHeight: '70vh',
+                overflowY: 'auto',
+            }}
         >
-            <Form form={form} layout='vertical'>
+            <Form
+                form={form}
+                layout='vertical'
+                style={{
+                    width: '100%',
+                    fontSize: 16,
+                    gap: 20,
+                }}
+            >
                 <Form.Item
                     label='Tiêu đề'
                     name='title'
@@ -77,7 +96,16 @@ const PostModal: React.FC<PostModalProps> = ({ visible, onClose }) => {
                         { required: true, message: 'Vui lòng nhập tiêu đề!' },
                     ]}
                 >
-                    <Input placeholder='Nhập tiêu đề bài viết' />
+                    <Input
+                        placeholder='Nhập tiêu đề bài viết'
+                        size='large'
+                        style={{
+                            height: 50,
+                            borderRadius: 8,
+                            padding: '0 15px',
+                            fontSize: 16,
+                        }}
+                    />
                 </Form.Item>
 
                 <Form.Item
@@ -87,30 +115,34 @@ const PostModal: React.FC<PostModalProps> = ({ visible, onClose }) => {
                         { required: true, message: 'Vui lòng nhập nội dung!' },
                     ]}
                 >
-                    <Input.TextArea
-                        rows={4}
-                        placeholder='Nhập nội dung bài viết'
-                    />
+                    <TipTapEditor placeholder='Nhập nội dung bài viết' />
                 </Form.Item>
 
                 <Form.Item
                     label='Meaning'
                     name='meaning'
                     rules={[
-                        { required: true, message: 'Vui lòng nhập nội dung!' },
+                        { required: true, message: 'Vui lòng nhập meaning!' },
                     ]}
                 >
-                    <Input.TextArea
-                        rows={4}
-                        placeholder='Nhập nội dung bài viết'
-                    />
+                    <TipTapEditor placeholder='Nhập nghĩa của bài viết' />
                 </Form.Item>
 
-                <Form.Item label='Flashcard' name='flashcards'>
+                <Form.Item
+                    label='Flashcard'
+                    name='flashcards'
+                    style={{ width: '100%' }}
+                >
                     <Select
                         mode='multiple'
                         placeholder='Chọn flashcard'
                         optionLabelProp='label'
+                        size='large'
+                        style={{
+                            fontSize: 16,
+                            borderRadius: 8,
+                        }}
+                        dropdownStyle={{ maxHeight: 300 }}
                     >
                         {flashcards.map((f) => (
                             <Select.Option
@@ -125,6 +157,7 @@ const PostModal: React.FC<PostModalProps> = ({ visible, onClose }) => {
                                                 width: 40,
                                                 height: 40,
                                                 objectFit: 'cover',
+                                                borderRadius: 4,
                                             }}
                                         />
                                     ) : (
@@ -140,6 +173,7 @@ const PostModal: React.FC<PostModalProps> = ({ visible, onClose }) => {
                                             width: 50,
                                             height: 50,
                                             objectFit: 'cover',
+                                            borderRadius: 4,
                                         }}
                                     />
                                 ) : (

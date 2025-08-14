@@ -18,6 +18,7 @@ import {
     callUpdatePost,
 } from '../../api/postApi';
 import type { Flashcard } from '../flashcard/flashcard.modal';
+import DOMPurify from 'dompurify';
 
 // interface IFlashcard {
 //     _id: string;
@@ -98,7 +99,7 @@ const PostOwnerList: React.FC = () => {
                 flashcards: values.flashcards?.map((id: string) => id) || [],
             };
 
-            console.log("Check update payload = ", payload)
+            console.log('Check update payload = ', payload);
             if (editingPost?._id) {
                 const res = await callUpdatePost(editingPost._id, payload);
                 if (res.data?.data) {
@@ -114,13 +115,27 @@ const PostOwnerList: React.FC = () => {
         }
     };
     const columns = [
-        { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
+        {
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+            render: (value: string) => (
+                <div
+                    style={{
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal',
+                        maxWidth: 200, // tùy chỉnh theo layout
+                    }}
+                >
+                    {value}
+                </div>
+            ),
+        },
         {
             title: 'Nội dung',
             dataIndex: 'content',
             key: 'content',
             render: (value: string) => {
-                // Nếu là link ảnh
                 if (
                     typeof value === 'string' &&
                     value.match(/\.(jpeg|jpg|gif|png|webp)$/i)
@@ -130,30 +145,45 @@ const PostOwnerList: React.FC = () => {
                             src={value}
                             alt='content'
                             style={{
-                                width: 60,
-                                height: 60,
+                                maxHeight: 50,
+                                maxWidth: 100,
                                 objectFit: 'cover',
                                 borderRadius: 4,
                             }}
                         />
                     );
                 }
-                // Nếu là text
                 return (
                     <div
-                        style={{
-                            maxHeight: 50,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                        dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(value || ''),
                         }}
-                    >
-                        {value}
-                    </div>
+                        style={{
+                            wordBreak: 'break-word',
+                            whiteSpace: 'normal',
+                            maxWidth: 300, // tùy chỉnh theo layout
+                        }}
+                    />
                 );
             },
         },
-        { title: 'Nghĩa', dataIndex: 'meaning', key: 'meaning' },
+        {
+            title: 'Nghĩa',
+            dataIndex: 'meaning',
+            key: 'meaning',
+            render: (value: string) => (
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(value || ''),
+                    }}
+                    style={{
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal',
+                        maxWidth: 300, // tùy chỉnh theo layout
+                    }}
+                />
+            ),
+        },
         {
             title: 'Hành động',
             key: 'actions',

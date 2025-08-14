@@ -80,14 +80,29 @@ export const CommentOwner: React.FC = ({}) => {
         {
             title: 'Nội dung',
             dataIndex: 'content',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Người tạo',
             dataIndex: ['createdBy', 'email'],
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value}
+                </div>
+            ),
         },
         {
             title: 'Ngày tạo',
             dataIndex: 'createdAt',
+            render: (value: string) => (
+                <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {value ? new Date(value).toLocaleString() : ''}
+                </div>
+            ),
         },
         {
             title: 'Hành động',
